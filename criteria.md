@@ -57,21 +57,11 @@ in at least 4 of 5 tries.
 
 ## 4. Something about your chunks
 
-<!-- YOU WRITE THIS ONE.
-
-     How would you know if your chunks were the right size? Name something
-     countable or observable.
-
-     Examples of the right shape — don't copy these, they should come from
-     what you actually saw in Milestone 3:
-       - "At least 4 of 5 sampled chunks read as a complete thought, with no
-          sentence cut in half at either end."
-       - "No chunk is shorter than 200 characters, since anything below that
-          in my corpus turned out to be a heading with no content under it." -->
+At least 4 of 5 sampled chunks read as a complete thought, no cut-off sentences at either end.
 
 
 
-**Why this target:**
+**Why this target: My chunking has overlap, so most cuts should land clean. Some source docs have weird formatting, so I'm not expecting 5/5.**
 
 
 
@@ -79,17 +69,11 @@ in at least 4 of 5 tries.
 
 ## 5. Your choice
 
-<!-- YOU WRITE THIS ONE TOO.
-
-     Pick something you actually care about getting right. It could be about
-     speed, about refusals, about a particular kind of question your corpus
-     handles badly, about source attribution being correct rather than merely
-     present — anything, as long as it names a number or an observable
-     outcome. -->
+At least 4 of 5 answers cite the correct source, not just any source.
 
 
 
-**Why this target:**
+**Why this target: It should be able to connect to a real source that is related to its answer. Of course missing one is ok, but it should mostly be correct about it.**
 
 
 
