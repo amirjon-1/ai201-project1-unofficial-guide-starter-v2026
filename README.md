@@ -16,6 +16,7 @@
 > or remove them.
 
 ---
+//for milestone 1 it was 26 chunks
 
 # Unit 1
 
