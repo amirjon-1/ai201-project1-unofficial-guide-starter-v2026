@@ -88,27 +88,32 @@ The good: cheapest housing tier by about $900 a year, and the singles are real s
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question:** How much does laundry cost at Old Brewhouse?
 
 **Answer:**
+Laundry at Old Brewhouse costs $1.50 for a wash and $1.50 for a dry.
+Source documents: housing_old_brewhouse_laundry.txt and housing_old_brewhouse.txt
 
 ```
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff:** 0.55
 
-<!-- The number you set in config.py, and how you got there.
+I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieval and recorded the best distance for each. The two groups separated cleanly — worst in-corpus distance was 0.328, best out-of-scope distance was 0.787, leaving a 0.46-wide gap with nothing in it. I set the cutoff at 0.55, roughly centered in that gap, so it's well clear of both my weakest real match and my strongest false match.
 
-     You ran five questions your corpus covers and the five in OUT_OF_SCOPE
-     that it clearly doesn't, and wrote down the best distance for each. What
-     did those two groups look like? Where was the gap? Put the actual numbers
-     here — the table below wants all ten rows.
-
-     Milestone 4. -->
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| How many two-hour blocks can one person book a study room for per week? | Yes | 0.1928 |
+| Do dining dollars carry over from spring to the following fall? | Yes | 0.2130 |
+| How much does laundry cost at Old Brewhouse? | Yes | 0.2205 |
+| How many washers and dryers are in Aldridge Hall? | Yes | 0.2748 |
+| How long does it take to walk from Aldridge Hall to the science quad? | Yes | 0.3283 |
+| What is the capital of Mongolia? | No | 0.7873 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.7985 |
+| Who won the 1994 World Cup? | No | 0.8474 |
+| How do I write a for loop in Rust? | No | 0.8571 |
+| How do I change the oil in a diesel engine? | No | 0.8846 |
 
 ## How I Used AI
 
