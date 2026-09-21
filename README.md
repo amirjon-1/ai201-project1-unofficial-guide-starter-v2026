@@ -22,11 +22,8 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
+This is a retrieval-augmented question-answering system built on the campus_life corpus — 88 short posts (student threads, course reviews, housing writeups) about student life at a university. It answers specific, factual questions grounded in those posts: laundry costs and hours by building, course workload and grading structure, dining and dining-dollar policies, study room booking rules, and walking times across campus. Every answer names the source document(s) it came from, and the system refuses to answer questions its documents don't cover rather than guessing.
 
-     Milestone 5. -->
 
 ## Chunking Strategy
 
@@ -38,14 +35,6 @@ The starter's default 800-character window never actually split anything on this
 
 ## Sample Chunks
 
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
-
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
-
-     Milestone 3. -->
 
 ======================================================================
 Chunk 1  |  source: admin_add_drop_deadline.txt#0  |  produced by: chunker.py::paragraph_split
@@ -85,8 +74,6 @@ The good: cheapest housing tier by about $900 a year, and the singles are real s
 
 ## Sample Answer
 
-<!-- One complete question and answer, pasted as text, with the source line
-     visible. Milestone 4. -->
 
 **Question:** How much does laundry cost at Old Brewhouse?
 
@@ -117,18 +104,10 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
 
 ## How I Used AI
 
-<!-- Two specific moments. For each: what you asked for, what came back, and
-     what you changed about it.
+**1.** I asked Claude Code to replace the starter's fixed-800-character chunker with a paragraph-based one, since the default never split anything on this corpus (posts average 317 characters). The first version worked structurally but broke on overlap: it introduced a fixed 40-character slice to carry context between chunks, and that slice regularly landed mid-word or mid-sentence — e.g. a chunk opening with "curved, but the lowest midterm is dropped" instead of "Not curved, but...". It took three rounds of me inspecting the actual chunk output, showing it the exact broken text, and eventually having it show me the real code before it found the actual bug: the word-boundary-recovery logic was discarding the partial word instead of recovering it. I had it change the approach entirely — walk backward to the last full sentence boundary instead of a fixed character count — which fixed it.
 
-     "I asked Claude to write the chunking function from my notes. It ignored
-     the overlap, so I added that myself" is the level of detail we're after.
-     "I used AI to help me code" is not.
 
-     Milestone 5. -->
-
-**1.**
-
-**2.**
+**2.** I asked Claude Code to set my relevance cutoff in `config.py` after getting a clean distance report (in-corpus questions clustered under 0.33, out-of-scope ones above 0.78). I told it to set `RELEVANCE_CUTOFF = 0.55`, but the gate kept showing `cutoff 0.6` in every run afterward, including fresh (non-cached) ones. I had it grep the codebase for where `0.6` actually appeared, which showed the real variable controlling the gate was `THRESHOLD`, not `RELEVANCE_CUTOFF` — a variable I'd added that nothing in the pipeline read. I corrected the actual `THRESHOLD` value instead and confirmed the fix with a fresh run.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
