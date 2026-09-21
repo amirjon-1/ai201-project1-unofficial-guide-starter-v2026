@@ -30,18 +30,11 @@
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Chunk size:** paragraph based (no fixed character target)
+**Overlap:** sentence-boundary-aware, walks back to the start of the last complete sentence rather than a fixed character count
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
+The starter's default 800-character window never actually split anything on this corpus — campus_life posts average 317 characters, so almost none reach 800. That produced 88 documents to 88 chunks, one post always equals one chunk, even for posts covering multiple unrelated topics. The Old Brewhouse post is the clearest example: history, heating, laundry cost, and noise all sit in one chunk, so a question about laundry price would retrieve noise complaints and building history along with it. I switched to splitting on paragraph breaks instead, so each distinct idea in a multi-topic post becomes its own chunk. Paragraphs under 40 characters (mostly short titles) get merged into their neighbor instead of becoming orphan fragment chunks. I initially used a fixed 40-character overlap to carry a bit of the previous paragraph's text into the next chunk, so details near a paragraph boundary wouldn't get lost. That cut mid-word and mid-sentence in several cases (e.g. a chunk opening with "curved, but the lowest midterm is dropped" instead of "Not curved, but..."). I changed the overlap to walk backward to the last full sentence boundary instead of a fixed character count, whatever length that takes, which fixed it — checked by re-sampling 5 chunks and confirming each opened on a complete sentence. This produced 192 chunks from the same 88 documents, averaging 180 characters, ranging from 40 to 397.
 
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
-
-     Milestone 3. -->
 
 ## Sample Chunks
 
@@ -54,30 +47,41 @@
 
      Milestone 3. -->
 
-**Chunk 1** — source: `` — produced by: ``
+======================================================================
+Chunk 1  |  source: admin_add_drop_deadline.txt#0  |  produced by: chunker.py::paragraph_split
+======================================================================
+On the add/drop deadline
 
-```
-```
+You can add a course through the end of the second week. Dropping is a longer window — through the end of week six — but a drop after week two shows as a W on your transcript. Nothing anywhere on the registrar's site says this plainly, and students find out from each other.
 
-**Chunk 2** — source: `` — produced by: ``
+======================================================================
+Chunk 2  |  source: course_cs_340_workload.txt#1  |  produced by: chunker.py::paragraph_split
+======================================================================
+That's real time, not optimistic time.
 
-```
-```
+It's front-loaded — the first month is heavier than the rest, partly because you're learning the format.
 
-**Chunk 3** — source: `` — produced by: ``
+======================================================================
+Chunk 3  |  source: course_phys_130_exams.txt#1  |  produced by: chunker.py::paragraph_split
+======================================================================
+Not curved, but the lowest midterm is dropped.
 
-```
-```
+The lab practical is worth 20% and almost nobody prepares for it.
 
-**Chunk 4** — source: `` — produced by: ``
+======================================================================
+Chunk 4  |  source: dining_verrill_street_grill_followup.txt#0  |  produced by: chunker.py::paragraph_split
+======================================================================
+Re: Verrill Street Grill
 
-```
-```
+Adding to what people have said about Verrill Street Grill. The wait figure of up to 30 minutes on Friday evenings matches what I've seen. If you're trying to eat between classes, go before 11:45 and it's a different building entirely.
 
-**Chunk 5** — source: `` — produced by: ``
+======================================================================
+Chunk 5  |  source: housing_morrow_house.txt#1  |  produced by: chunker.py::paragraph_split
+======================================================================
+Rooms are singles and doubles, hall bathrooms.
 
-```
-```
+The good: cheapest housing tier by about $900 a year, and the singles are real singles.
+
 
 ## Sample Answer
 

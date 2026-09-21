@@ -80,6 +80,62 @@ def fallback_split(
     return chunks
 
 
+def paragraph_split(
+    documents: list[Document],
+    min_para_len: int = 40,
+    overlap: int = 40,
+) -> list[Chunk]:
+    """
+    Paragraph-aware chunker.
+
+    Splits each document on blank lines, merges paragraphs shorter than
+    *min_para_len* into their neighbour, then prepends *overlap* trailing
+    characters from the previous chunk so details near a paragraph boundary
+    stay retrievable from either side.
+    """
+    import re
+
+    chunks: list[Chunk] = []
+    for doc in documents:
+        raw = re.split(r"\n{2,}", doc.text)
+        paras = [p.strip() for p in raw if p.strip()]
+
+        # Merge short paragraphs forward; if the last is still short, merge backward.
+        merged: list[str] = []
+        i = 0
+        while i < len(paras):
+            para = paras[i]
+            if len(para) < min_para_len and i + 1 < len(paras):
+                merged.append(para + "\n\n" + paras[i + 1])
+                i += 2
+            else:
+                merged.append(para)
+                i += 1
+        if len(merged) > 1 and len(merged[-1]) < min_para_len:
+            tail = merged.pop()
+            merged[-1] += "\n\n" + tail
+
+        # Emit chunks, prepending a short tail from the raw previous paragraph.
+        for idx, text in enumerate(merged):
+            if idx > 0:
+                prev_text = merged[idx - 1]
+                # Walk back to the start of the last complete sentence.
+                match = re.search(r'.*[.!?]\s+', prev_text, re.DOTALL)
+                raw_tail = prev_text[match.end():] if match else prev_text
+                prev_tail = raw_tail.strip()
+                text = (prev_tail + "\n\n" + text) if prev_tail else text
+            chunks.append(
+                Chunk(
+                    text=text,
+                    source=doc.source,
+                    index=idx,
+                    produced_by="chunker.py::paragraph_split",
+                )
+            )
+
+    return chunks
+
+
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
     Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
@@ -97,7 +153,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
       - Would splitting on paragraph breaks keep more thoughts intact than
         splitting on a character count?
     """
-    return fallback_split(documents)
+    return paragraph_split(documents)
 
 
 def describe(chunks: list[Chunk]) -> str:
