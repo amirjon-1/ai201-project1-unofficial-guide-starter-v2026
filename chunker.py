@@ -80,6 +80,84 @@ def fallback_split(
     return chunks
 
 
+def fixed_size_split(
+    documents: list[Document],
+    chunk_size: int = 300,
+    overlap: int = 40,
+) -> list[Chunk]:
+    """
+    Fixed-size character window chunker that snaps both ends to sentence boundaries.
+
+    Works like fallback_split but instead of cutting at exact character counts,
+    snaps each chunk's end to the nearest '.', '!', or '?' (searching backward
+    first so we don't overshoot chunk_size, then forward if the window contains
+    no punctuation), and snaps each subsequent chunk's start forward to the
+    beginning of the next complete sentence after the overlap point.
+    """
+    if overlap >= chunk_size:
+        raise ValueError("overlap has to be smaller than chunk_size")
+
+    def snap_end(text: str, start: int, target: int) -> int:
+        # Backward search bounded by start so we never land before the chunk start.
+        for i in range(min(target, len(text) - 1), start - 1, -1):
+            if text[i] in ".!?":
+                return i + 1
+        # No punctuation in the window — search forward from target.
+        for i in range(target, len(text)):
+            if text[i] in ".!?":
+                return i + 1
+        return len(text)
+
+    def snap_start(text: str, pos: int) -> int:
+        # If pos is already right after sentence-ending punctuation, just skip whitespace.
+        if pos <= 0:
+            return 0
+        j = pos - 1
+        while j >= 0 and text[j].isspace():
+            j -= 1
+        if j < 0 or text[j] in ".!?":
+            i = pos
+            while i < len(text) and text[i].isspace():
+                i += 1
+            return i
+        # Mid-sentence: advance to the character after the next sentence-ender.
+        for k in range(pos, len(text)):
+            if text[k] in ".!?":
+                nxt = k + 1
+                while nxt < len(text) and text[nxt].isspace():
+                    nxt += 1
+                return nxt
+        return pos  # No further boundary — use pos as-is.
+
+    chunks: list[Chunk] = []
+    for doc in documents:
+        text = doc.text
+        if not text.strip():
+            continue
+        start = 0
+        index = 0
+        while start < len(text):
+            end = snap_end(text, start, start + chunk_size)
+            piece = text[start:end].strip()
+            if piece:
+                chunks.append(
+                    Chunk(
+                        text=piece,
+                        source=doc.source,
+                        index=index,
+                        produced_by="chunker.py::fixed_size_split",
+                    )
+                )
+                index += 1
+            if end >= len(text):
+                break
+            nxt = snap_start(text, max(0, end - overlap))
+            # Always advance past the current start to prevent infinite loops.
+            start = nxt if nxt > start else end
+
+    return chunks
+
+
 def paragraph_split(
     documents: list[Document],
     min_para_len: int = 40,
@@ -153,7 +231,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
       - Would splitting on paragraph breaks keep more thoughts intact than
         splitting on a character count?
     """
-    return paragraph_split(documents)
+    return fixed_size_split(documents)
 
 
 def describe(chunks: list[Chunk]) -> str:

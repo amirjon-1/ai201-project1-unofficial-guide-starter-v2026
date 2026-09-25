@@ -136,15 +136,38 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks read as complete thoughts | 4 of 5 | ? | ? | ? | ? |
+| 5. Answers cite the correct source | 4 of 5 | ? | ? | ? | ? |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+     
+Produced by `run_eval.py::main` — retrieval via `store.py::search`, chunks from `chunker.py::split_documents`. Corpus: campus_life, top-k 5, relevance cutoff 0.55, 3 runs per question, caching off.
+
+**Sample real output:**
+
+```
+How much does laundry cost at Old Brewhouse? — run 1
+
+At Old Brewhouse, laundry costs $1.50 for a wash and $1.50 for a dry. 
+
+Sources: `housing_old_brewhouse.txt` and `housing_old_brewhouse_laundry.txt`
+```
+
+```
+How many washers and dryers are in Aldridge Hall? — run 1
+
+Based on the documents provided, there are eight washers and six dryers in Aldridge Hall (housing_aldridge_hall_laundry.txt).
+```
+
+```
+Out-of-scope gate — 5 of 5 refused, e.g.:
+What is the capital of Mongolia? → refused (best distance 0.787, cutoff 0.55)
+```
 
 ## Verdicts
 
@@ -157,13 +180,15 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
 
      Milestone 2. -->
 
+## Verdicts
+
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer (4 of 5) | MET | All 3 runs scored 5/5 — every question's answer was present in the retrieved chunks every time, with distances well under the 0.55 cutoff (0.19–0.33 range). |
+| 2 | Every answer names a source (5 of 5) | MET | All 15 answers across 3 runs named at least one specific source file. |
+| 3 | Gate stops out-of-corpus questions (4 of 5) | MET | All 5 OUT_OF_SCOPE questions were refused (distances 0.79–0.89, well above the 0.55 cutoff). This is a single deterministic pass, so the same result applies to all 3 run columns. |
+| 4 | Chunks read as complete thoughts (4 of 5) | MET | After fixing the overlap bug in Milestone 3, I resampled 5 chunks and all 5 opened on complete sentences with no mid-word or mid-sentence cuts. Deterministic — same result across all 3 columns. |
+| 5 | Answers cite the correct source, not just any source (4 of 5) | MET | Checked all 15 answers: each cited source file matched the question's actual topic (e.g. the laundry question cited the Old Brewhouse laundry doc, not one of the other 4 retrieved-but-irrelevant housing docs). |
 
 ## Diagnoses
 
@@ -184,15 +209,25 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
      low, and which one you'd tighten and to what.
 
      Milestone 3. -->
+     
+     
+No criteria were missed — all 5 hit their targets across all 3 runs.
+
+I'd tighten **criterion 4** (chunks read as complete thoughts, target 4 of 5). As written, I only ever checked 5 chunks out of 192 total by hand — a sample that small could easily miss a boundary problem sitting somewhere else in the corpus. A stronger version: "At least 18 of 20 randomly sampled chunks (out of 192) read as a complete thought, no cut-off sentences at either end." A bigger sample is harder to pass by luck and would actually tell me something about the whole corpus, not just the 5 chunks I happened to look at.
 
 ## The Improvement
 
 **What I changed:**
 
+Added a second chunking strategy, `fixed_size_split`, that chunks documents into a fixed ~300-character window with overlap, but snaps both chunk boundaries to the nearest sentence end instead of cutting at a raw character count. I temporarily swapped it in for `paragraph_split` and re-ran the full eval to compare.
+
+
 **Why I picked it:**
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
+
+My diagnosis in Milestone 3 found no actual misses, but flagged that criterion 4 (chunk boundaries) was only checked against a 5-chunk sample out of 192 — a strategy comparison was the most direct way to test whether a different chunking approach would meaningfully change results, not just spot-check the existing one.
 
 ### Run Log — After
 
@@ -201,20 +236,22 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks read as complete thoughts | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answers cite the correct source | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
-**Did it help?**
-
+**Did it help?** 
 <!-- Say plainly whether it did, and how you know. If it made things worse,
      say that — a change that backfired, honestly reported, earns full credit
      and is more interesting than one that worked. What matters is that you can
      tell.
 
      Milestone 4. -->
+
+No, not measurably. All 5 criteria scored identically to the paragraph-split "before" run — same correct facts, same correct sources cited, gate still refusing 5/5 out-of-scope questions. Distances shifted slightly (e.g. washers/dryers moved from 0.275 to 0.322) but stayed well clear of the 0.55 cutoff either way. `fixed_size_split` produced 132 chunks vs. 192 for `paragraph_split` — fewer, slightly larger chunks — but on this corpus, where most posts are already short and single-topic, both strategies land on essentially the same content per chunk. A change more likely to move these numbers would be one that alters what gets *retrieved*, like hybrid search, rather than how already-short documents get sliced.
+
 
 ## What's Still Broken
 
@@ -226,9 +263,14 @@ I ran my 5 in-corpus questions and the 5 OUT_OF_SCOPE questions through retrieva
 
      Milestone 5. -->
 
+Nothing failed against my current criteria — all 5 hit their targets across all 3 runs, both before and after the chunking change. But that's a limitation of the test itself, not proof the system is solid: I only wrote 5 test questions, and all 5 are single-fact lookups that appear near-verbatim in one clearly-relevant document. I never tested multi-hop questions (where the answer requires combining facts from two different documents) or cross-document questions (where the system has to correctly pick between several documents covering similar topics, like two different buildings' laundry posts). If I had more time, I'd write a second batch of harder test questions specifically targeting those cases before trusting this system more broadly.
+
+
 ## What I'd Do Differently
 
 <!-- Knowing what you know now — which of your five criteria would you write
      differently, and why?
 
      Milestone 5. -->
+
+None of my 5 criteria actually tested multi-hop or cross-document reasoning — they all measure whether a single fact was retrieved and cited correctly, which this corpus makes fairly easy since most answers live in one obviously-relevant document. Next time I'd write at least one criterion specifically targeting a harder case, e.g. "for at least 3 of 5 questions requiring information from two chunks, the answer correctly combines both." A criterion that's only ever tested the easy case doesn't tell you much about where the system actually breaks.
