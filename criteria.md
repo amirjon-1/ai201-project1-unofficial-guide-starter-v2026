@@ -62,7 +62,8 @@ At least 4 of 5 sampled chunks read as a complete thought, no cut-off sentences 
 
 
 **Why this target: My chunking has overlap, so most cuts should land clean. Some source docs have weird formatting, so I'm not expecting 5/5.**
-
+**Revised:** At least 18 of 20 randomly sampled chunks (out of 192) read as a complete thought, no cut-off sentences at either end.
+**Why:** The original only checked 5 chunks out of 192 — too small a sample to trust. A larger sample is harder to pass by luck and actually reflects the whole corpus.
 
 
 ---
